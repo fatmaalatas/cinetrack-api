@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>CineTrack API</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #2c3e50; color: white; }
+        .container { background: #34495e; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-width: 500px; margin: auto; margin-bottom: 20px;}
+        input { width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #e74c3c; color: white; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; margin-top: 10px;}
+        button:hover { background-color: #c0392b; }
+        h2 { text-align: center; margin-top: 0; color: #ecf0f1; }
+
+        /* Yeni Liste Tasarımları */
+        .movie-item { background-color: #2c3e50; padding: 15px; margin-top: 10px; border-radius: 8px; border-left: 5px solid #f1c40f; }
+        .movie-title { font-size: 18px; font-weight: bold; color: #f1c40f; }
+        .movie-details { font-size: 14px; color: #bdc3c7; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎬 Yeni Film Ekle</h2>
+    <input type="text" id="title" placeholder="Film Adı (Örn: Maze Runner)">
+    <input type="text" id="director" placeholder="Yönetmen (Sadece harf)">
+    <input type="number" id="releaseYear" placeholder="Çıkış Yılı (Örn: 2014)">
+    <input type="number" id="rating" step="0.1" placeholder="Puanınız (Örn: 8.5)">
+    <button onclick="saveMovie()">Filmi Veritabanına Kaydet</button>
+</div>
+
+<div class="container" id="listContainer">
+    <h2>🍿 Film Listemiz</h2>
+    <div id="movieList">
+    </div>
+</div>
+
+<script>
+    // Sayfa ilk açıldığında hemen veritabanındaki filmleri getir
+    window.onload = loadMovies;
+
+    function loadMovies() {
+        // Arka uçtaki GET kapımızı çalıyoruz
+        fetch('/api/movies')
+        .then(response => response.json())
+        .then(data => {
+            const listDiv = document.getElementById('movieList');
+            listDiv.innerHTML = ''; // Önceki listeyi temizle ki üst üste binmesin
+
+            if (data.length === 0) {
+                listDiv.innerHTML = '<p style="text-align:center; color:#bdc3c7;">Henüz film eklenmedi.</p>';
+                return;
+            }
+
+            // Her bir film için şık bir HTML kutucuğu çiziyoruz
+            data.forEach(movie => {
+                const movieBox = document.createElement('div');
+                movieBox.className = 'movie-item';
+                movieBox.innerHTML = `
+                    <div class="movie-title">${movie.title} <span style="font-size: 14px; color: #ecf0f1;">(${movie.releaseYear})</span></div>
+                    <div class="movie-details">🎬 Yönetmen: ${movie.director} | ⭐ Puan: ${movie.rating}</div>
+                `;
+                listDiv.appendChild(movieBox);
+            });
+        });
+    }
+
+    function saveMovie() {
+        const movieData = {
+            title: document.getElementById('title').value,
+            director: document.getElementById('director').value,
+            releaseYear: document.getElementById('releaseYear').value,
+            rating: document.getElementById('rating').value
+        };
+
+        fetch('/api/movies', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(movieData)
+        })
+        .then(response => {
+            if(response.ok) {
+                alert("Başarılı! Film depoya eklendi Patron!");
+                document.querySelectorAll('input').forEach(input => input.value = '');
+
+                // YENİ KOMUT: Film eklenir eklenmez listeyi otomatik güncelle!
+                loadMovies();
+            } else {
+                alert("Hata! Ya kurallara (Regex) uymadın ya da bu film zaten var.");
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

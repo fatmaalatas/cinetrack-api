@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # 1. KUTU: Veritabanımız (Zaten kurmuştuk)
+  cinetrack-db:
+    image: mysql:8.0
+    container_name: cinetrack_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: cinetrack_db
+    ports:
+      - "3307:3306"
+
+  # 2. KUTU: Bizim Yazdığımız Java Projesi!
+  cinetrack-api:
+    build: .   # Git yanındaki Dockerfile'ı bul ve inşa et demek
+    container_name: cinetrack_backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - cinetrack-db # Önce veritabanı kutusu açılsın, sonra bu açılsın demek
+    environment:
+      # ÇOK KRİTİK: Adrese dikkat et! Artık localhost değil, cinetrack-db yazıyor!
+      SPRING_DATASOURCE_URL: jdbc:mysql://cinetrack-db:3306/cinetrack_db?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
