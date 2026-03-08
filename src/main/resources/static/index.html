@@ -2,94 +2,232 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>CineTrack API</title>
+    <title>CineTrack | AI Powered Movie Library</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #2c3e50; color: white; }
-        .container { background: #34495e; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-width: 500px; margin: auto; margin-bottom: 20px;}
-        input { width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background-color: #e74c3c; color: white; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; margin-top: 10px;}
-        button:hover { background-color: #c0392b; }
-        h2 { text-align: center; margin-top: 0; color: #ecf0f1; }
+        :root {
+            --bg: #0f172a;
+            --card: rgba(30, 41, 59, 0.7);
+            --accent: #e50914;
+            --text-dim: #94a3b8;
+        }
 
-        /* Yeni Liste Tasarımları */
-        .movie-item { background-color: #2c3e50; padding: 15px; margin-top: 10px; border-radius: 8px; border-left: 5px solid #f1c40f; }
-        .movie-title { font-size: 18px; font-weight: bold; color: #f1c40f; }
-        .movie-details { font-size: 14px; color: #bdc3c7; margin-top: 5px; }
+        #bg-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg); background-size: cover; background-position: center;
+            z-index: -1; transition: background-image 0.8s ease-in-out, opacity 0.8s;
+            opacity: 0.3;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white; margin: 0; display: flex; flex-direction: column; align-items: center;
+            background-color: var(--bg);
+        }
+
+        .container { width: 95%; max-width: 1100px; margin-top: 50px; z-index: 1; }
+
+        .form-section {
+            background: var(--card); padding: 30px; border-radius: 20px;
+            backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .grid-input { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+
+        input {
+            width: 100%; padding: 12px; background: rgba(0,0,0,0.4);
+            border: 1px solid #334155; border-radius: 10px; color: white;
+            box-sizing: border-box; transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--accent); outline: none; background: rgba(0,0,0,0.6); }
+
+        .btn-add {
+            width: 100%; padding: 15px; margin-top: 20px; background: var(--accent);
+            border: none; border-radius: 10px; color: white; font-weight: bold;
+            font-size: 16px; cursor: pointer; transition: 0.3s;
+        }
+
+        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 0 25px var(--accent); }
+
+        .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; margin-top: 50px; }
+
+        .movie-card {
+            background: var(--card); border-radius: 15px; overflow: hidden; display: flex;
+            border: 1px solid rgba(255,255,255,0.05); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer; position: relative;
+        }
+
+        .movie-card:hover { transform: scale(1.03); border-color: var(--accent); box-shadow: 0 15px 30px rgba(0,0,0,0.6); }
+
+        .poster-preview {
+            width: 110px; min-width: 110px; height: 165px;
+            background-size: cover; background-position: center;
+            background-color: #1e293b;
+        }
+
+        .movie-content { padding: 18px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+
+        .movie-title { font-size: 1.25em; font-weight: bold; color: #fff; margin-bottom: 8px; }
+
+        .movie-meta { font-size: 0.9em; color: var(--text-dim); line-height: 1.6; }
+
+        .actions { display: flex; gap: 10px; margin-top: 15px; }
+
+        /* Yeni Eklenen Öner Butonu Tasarımı */
+        .btn-rec {
+            background: #3b82f6; color: white; border: none;
+            padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+            font-weight: bold; transition: 0.3s;
+        }
+
+        .btn-rec:hover { background: #2563eb; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); transform: translateY(-1px); }
+
+        .btn-del {
+            background: rgba(255, 255, 255, 0.1); color: white; border: none;
+            padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+            transition: 0.3s;
+        }
+
+        .btn-del:hover { background: var(--accent); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🎬 Yeni Film Ekle</h2>
-    <input type="text" id="title" placeholder="Film Adı (Örn: Maze Runner)">
-    <input type="text" id="director" placeholder="Yönetmen (Sadece harf)">
-    <input type="number" id="releaseYear" placeholder="Çıkış Yılı (Örn: 2014)">
-    <input type="number" id="rating" step="0.1" placeholder="Puanınız (Örn: 8.5)">
-    <button onclick="saveMovie()">Filmi Veritabanına Kaydet</button>
-</div>
+<div id="bg-layer"></div>
 
-<div class="container" id="listContainer">
-    <h2>🍿 Film Listemiz</h2>
-    <div id="movieList">
+<div class="container">
+    <div class="form-section">
+        <h2 style="margin-top:0; letter-spacing: 1px;">🎬 CineTrack AI Explorer</h2>
+        <div class="grid-input">
+            <input type="text" id="title" placeholder="Film Adı">
+            <input type="text" id="genre" placeholder="Tür">
+            <input type="text" id="director" placeholder="Yönetmen">
+            <input type="number" id="releaseYear" placeholder="Yıl">
+            <input type="number" id="rating" step="0.1" placeholder="Puan">
+        </div>
+        <button onclick="saveMovie()" class="btn-add">KÜTÜPHANEYE EKLE</button>
     </div>
+
+    <div id="movieGrid" class="movie-grid"></div>
 </div>
 
 <script>
-    // Sayfa ilk açıldığında hemen veritabanındaki filmleri getir
     window.onload = loadMovies;
 
-    function loadMovies() {
-        // Arka uçtaki GET kapımızı çalıyoruz
-        fetch('/api/movies')
-        .then(response => response.json())
-        .then(data => {
-            const listDiv = document.getElementById('movieList');
-            listDiv.innerHTML = ''; // Önceki listeyi temizle ki üst üste binmesin
+    async function loadMovies() {
+        try {
+            const res = await fetch('/api/movies');
+            const movies = await res.json();
+            const grid = document.getElementById('movieGrid');
+            grid.innerHTML = '';
 
-            if (data.length === 0) {
-                listDiv.innerHTML = '<p style="text-align:center; color:#bdc3c7;">Henüz film eklenmedi.</p>';
-                return;
-            }
+            movies.forEach(m => {
+                const card = document.createElement('div');
+                card.className = 'movie-card';
 
-            // Her bir film için şık bir HTML kutucuğu çiziyoruz
-            data.forEach(movie => {
-                const movieBox = document.createElement('div');
-                movieBox.className = 'movie-item';
-                movieBox.innerHTML = `
-                    <div class="movie-title">${movie.title} <span style="font-size: 14px; color: #ecf0f1;">(${movie.releaseYear})</span></div>
-                    <div class="movie-details">🎬 Yönetmen: ${movie.director} | ⭐ Puan: ${movie.rating}</div>
+                card.onmouseenter = () => changeBg(m.posterUrl);
+                card.onmouseleave = resetBg;
+
+                // Tırnak işaretleri karışmasın diye ufak bir kaçış (escape) işlemi ekledik
+                const safeTitle = m.title.replace(/'/g, "\\'");
+
+                card.innerHTML = `
+                    <div class="poster-preview" style="background-image: url('${m.posterUrl || ''}')"></div>
+                    <div class="movie-content">
+                        <div>
+                            <div class="movie-title">${m.title}</div>
+                            <div class="movie-meta">
+                                👤 ${m.director} <br>
+                                🎭 ${m.genre} | 📅 ${m.releaseYear} <br>
+                                ⭐ <strong>${m.rating}</strong>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button onclick="getRec(${m.id}, '${safeTitle}', event)" class="btn-rec">🍿 Öner</button>
+                            <button onclick="deleteMovie(${m.id}, event)" class="btn-del">🗑️ Listeden Kaldır</button>
+                        </div>
+                    </div>
                 `;
-                listDiv.appendChild(movieBox);
+                grid.appendChild(card);
             });
-        });
+        } catch (error) {
+            console.error("Filmler yüklenirken hata oluştu:", error);
+        }
     }
 
-    function saveMovie() {
-        const movieData = {
-            title: document.getElementById('title').value,
+    async function saveMovie() {
+        const titleInput = document.getElementById('title');
+        if (!titleInput.value.trim()) {
+            alert("Lütfen en azından bir film adı girin!");
+            return;
+        }
+
+        const data = {
+            title: titleInput.value.trim(),
+            genre: document.getElementById('genre').value,
             director: document.getElementById('director').value,
-            releaseYear: document.getElementById('releaseYear').value,
-            rating: document.getElementById('rating').value
+            releaseYear: document.getElementById('releaseYear').value || 0,
+            rating: document.getElementById('rating').value || 0
         };
 
-        fetch('/api/movies', {
+        const res = await fetch('/api/movies', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(movieData)
-        })
-        .then(response => {
-            if(response.ok) {
-                alert("Başarılı! Film depoya eklendi Patron!");
-                document.querySelectorAll('input').forEach(input => input.value = '');
-
-                // YENİ KOMUT: Film eklenir eklenmez listeyi otomatik güncelle!
-                loadMovies();
-            } else {
-                alert("Hata! Ya kurallara (Regex) uymadın ya da bu film zaten var.");
-            }
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
         });
+
+        if (res.ok) {
+            document.querySelectorAll('input').forEach(i => i.value = '');
+            loadMovies();
+        } else {
+            const err = await res.text();
+            alert("Hata: " + err);
+        }
+    }
+
+    // Yeni Eklenen Öneri Fonksiyonu
+    async function getRec(id, title, event) {
+        event.stopPropagation(); // Butona basınca kartın arka plan efektini tetiklemesini engeller
+
+        try {
+            const res = await fetch(`/api/movies/${id}/recommendations`);
+            const data = await res.json();
+
+            if (data.length > 0) {
+                const list = data.map(m => `• ${m.title} (${m.genre})`).join('\n');
+                alert(`${title} sevenler kütüphanedeki şu filmleri de sevdi:\n\n${list}`);
+            } else {
+                alert(`Üzgünüz, şu an "${title}" için veritabanımızda benzer türde bir film yok. Yeni filmler ekledikçe burası zenginleşecektir!`);
+            }
+        } catch (error) {
+            alert("Öneriler getirilirken bir hata oluştu.");
+            console.error(error);
+        }
+    }
+
+    async function deleteMovie(id, event) {
+        event.stopPropagation();
+        if (confirm("Bu filmi kütüphaneden silmek istediğinize emin misiniz?")) {
+            await fetch(`/api/movies/${id}`, { method: 'DELETE' });
+            loadMovies();
+            resetBg();
+        }
+    }
+
+    function changeBg(url) {
+        const bg = document.getElementById('bg-layer');
+        if (url) {
+            bg.style.backgroundImage = `linear-gradient(rgba(15,23,42,0.6), rgba(15,23,42,0.9)), url('${url}')`;
+            bg.style.opacity = "1";
+        }
+    }
+
+    function resetBg() {
+        const bg = document.getElementById('bg-layer');
+        bg.style.backgroundImage = 'none';
+        bg.style.opacity = "0.3";
     }
 </script>
-
 </body>
 </html>

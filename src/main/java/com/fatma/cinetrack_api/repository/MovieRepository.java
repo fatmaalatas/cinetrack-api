@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository // Spring Boot'a "Bu sınıf bizim Depo Görevlimizdir" der.
 public interface MovieRepository extends JpaRepository<Movie, Long> {
     boolean existsByTitle(@NotBlank(message = "Film adı boş bırakılamaz veya sadece boşluklardan oluşamaz!") String title);
@@ -13,4 +15,9 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     // Şimdilik içinin bomboş kalması normal, sakın korkma!
     // JpaRepository bizim için save(), findById(), deleteById() gibi tüm metotları arka planda otomatik yazdı bile.
 
+    // Zeka motorumuz için sihirli sorgu:
+    // Belirli bir türdeki filmleri getir
+    //SELECT * FROM movies WHERE genre = ? SQL sorgusunu bizim yerimize otomatik yazar.
+
+    List<Movie> findByGenre(String genre);
 }

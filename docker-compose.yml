@@ -4,6 +4,8 @@ services:
   # 1. KUTU: Veritabanımız (Zaten kurmuştuk)
   cinetrack-db:
     image: mysql:8.0
+    volumes:
+      - mysql_data:/var/lib/mysql  # <--- BU İKİ SATIRI EKLE
     container_name: cinetrack_mysql
     environment:
       MYSQL_ROOT_PASSWORD: 1234
@@ -11,12 +13,13 @@ services:
     ports:
       - "3307:3306"
 
+
   # 2. KUTU: Bizim Yazdığımız Java Projesi!
   cinetrack-api:
     build: .   # Git yanındaki Dockerfile'ı bul ve inşa et demek
     container_name: cinetrack_backend
     ports:
-      - "8080:8080"
+      - "9090:8080"
     depends_on:
       - cinetrack-db # Önce veritabanı kutusu açılsın, sonra bu açılsın demek
     environment:
@@ -25,3 +28,6 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 1234
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+volumes:
+  mysql_data:

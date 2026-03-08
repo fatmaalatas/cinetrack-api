@@ -5,9 +5,13 @@ import com.fatma.cinetrack_api.entity.Movie;
 import com.fatma.cinetrack_api.service.MovieService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import com.fatma.cinetrack_api.service.RecommendationService;
 
 @RestController
 @RequestMapping("/api/movies")//bu kapının internet adresi URL
@@ -37,6 +41,21 @@ public class MovieController {
     @DeleteMapping("/{id}")
     public void deleteMovie(@PathVariable Long id){
         movieService.deleteMovie(id);
+    }
+
+    @Autowired//Spring Framework'ün "Dependency Injection" (Bağımlılık Enjeksiyonu) özelliğidir.
+    //RecommendationService sınıfından yeni bir nesne (new RecommendationService()) yaratmak yerine,
+    // bellekte var olan nesneyi buraya bağlar. Bu, bellek yönetimini optimize eder.
+    private RecommendationService recommendationService;
+
+
+
+    @GetMapping("/{id}/recommendations")//Bu metoda bir adres (Route) atar. Tarayıcıdan
+    public ResponseEntity<List<Movie>> getRecommendations(@PathVariable Long id) {
+        List<Movie> recommendedMovies = recommendationService.getRecommendations(id);
+        return ResponseEntity.ok(recommendedMovies);
+        //ResponseEntity.ok(...): İşlem bittiğinde, bulunan öneri listesini ve "200 OK"
+        // (Başarılı) HTTP durum kodunu paketleyip kullanıcıya geri gönderir.
     }
 }
 

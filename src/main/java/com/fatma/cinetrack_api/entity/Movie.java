@@ -37,6 +37,10 @@ public class Movie {
 
     private Double rating;
 
+    // Sınıfın içine diğer değişkenlerin yanına ekle:
+    private String genre; // Örn: "Sci-Fi", "Romance", "Action"
 
+    @Column(length = 1000) // Linkler uzun olabileceği için veritabanında yer açıyoruz
+    private String posterUrl;
 
 }
